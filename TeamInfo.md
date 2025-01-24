@@ -1,4 +1,4 @@
-# team004
+# Team004-QueryCrew
 
 ## Basic Information
 
@@ -19,9 +19,9 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
-| System URL  |      link_to_system    |
-| Video Link  |      link_to_video     |
+|  Title      |          TBD           |
+| System URL  |          TBD           |
+| Video Link  |          TBD           |
 
 ## Project Summary
 
