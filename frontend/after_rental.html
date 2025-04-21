@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dropoff & Feedback</title>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Complete Rental</h2>
+    <form id="finalForm">
+      <label>Dropoff Location:</label>
+      <input type="text" id="dropoff"><br>
+
+      <label>Rating (0-5):</label>
+      <input type="number" id="rating" min="0" max="5"><br>
+
+      <label>Comments:</label>
+      <textarea id="comments"></textarea><br>
+
+      <button type="submit">Submit Rental</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    document.getElementById('finalForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const rentalData = {
+        car_id: urlParams.get('car_id'),
+        customer_id: urlParams.get('customer_id'),
+        start: urlParams.get('start'),
+        end: urlParams.get('end'),
+        purpose: urlParams.get('purpose'),
+        miles: urlParams.get('miles'),
+        rate: urlParams.get('rate'),
+        dropoff: document.getElementById('dropoff').value,
+        rating: document.getElementById('rating').value,
+        comments: document.getElementById('comments').value
+      };
+
+      fetch('/submit_rental', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rentalData)
+      }).then(res => res.json())
+        .then(data => {
+          alert('Rental submitted!');
+          window.location.href = '/customer';
+        });
+    });
+  </script>
+</body>
+</html>

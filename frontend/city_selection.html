@@ -32,12 +32,13 @@
             <th>Model</th>
             <th>Year</th>
             <th>Hourly Rate</th>
+            <th>Action</th> <!-- Add this -->
           </tr>
         </thead>
         <tbody id="vehiclesTable">
-          <!-- Vehicle rows will be inserted here -->
+          <!-- Filled dynamically via JavaScript -->
         </tbody>
-      </table>
+      </table>      
     </div>
   </div>
 
@@ -80,6 +81,11 @@ $.ajax({
                           <td>${vehicle.Model}</td>
                           <td>${vehicle.Year}</td>
                           <td>${vehicle.HourlyRate}</td>
+                          <td> <a class="btn btn-success" 
+                            href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}">
+                            Rent
+                            </a>
+                          </td>
                         </tr>`;
             });
             $('#vehiclesTable').html(rows);

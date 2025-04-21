@@ -65,3 +65,37 @@ $('#loginForm').submit(function (e) {
       }
     });
   });
+
+  // Only run this part if on the city_selection page
+if (window.location.pathname.includes('city_selection')) {
+  const params = new URLSearchParams(window.location.search);
+  const city = params.get('city');
+  const customerId = params.get('customer_id');
+
+  fetch(`/available_vehicles?city=${encodeURIComponent(city)}&customer_id=${customerId}`)
+    .then(response => response.json())
+    .then(vehicles => {
+      const tableBody = document.getElementById('vehicleTableBody');
+      if (!tableBody) return;
+
+      vehicles.forEach(vehicle => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${vehicle.Make}</td>
+          <td>${vehicle.Model}</td>
+          <td>${vehicle.Year}</td>
+          <td>$${vehicle.HourlyRate}</td>
+          <td>
+            <a class="btn btn-success" 
+               href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}">
+              Rent
+            </a>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    })
+    .catch(err => {
+      console.error('Error fetching vehicles:', err);
+    });
+}

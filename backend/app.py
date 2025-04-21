@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request, send_from_directory, render_template
 import mysql.connector
 from mysql.connector import Error
 import os
+from datetime import datetime, timedelta
+
 
 app = Flask(__name__)
 
@@ -52,6 +54,62 @@ def serve_js(filename):
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     return send_from_directory('frontend/css', filename)
+@app.route('/rent_form')
+def rent_form():
+    return send_from_directory('../frontend', 'rent_form.html')
+
+@app.route('/after_rental')
+def after_rental():
+    return send_from_directory('../frontend', 'after_rental.html')
+@app.route('/submit_rental', methods=['POST'])
+def submit_rental():
+    data = request.json
+    try:
+        # Parse the start and end times
+        start = datetime.strptime(data['start'], "%Y-%m-%d %I:%M:%S %p")  # Pickup start time
+        end = datetime.strptime(data['end'], "%Y-%m-%d %I:%M:%S %p")  # Dropoff end time
+        
+        # Calculate the rental total cost
+        total_cost = float(data['rate']) * ((end - start).total_seconds() / 3600)  # total hours
+
+        # Get pickup GarageId from the data (this is the GarageId where the car is picked up)
+        pickup_garage_id = data['pickup_garage_id']
+        
+        # Get the new rental ID (manually generating the next ID)
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COALESCE(MAX(RentalId), 0) + 1 FROM Rentals")
+        rental_id = cursor.fetchone()[0]
+
+        # Insert the rental record into the Rentals table
+        cursor.execute('''
+            INSERT INTO Rentals (
+                RentalId, CarId, CustomerId, StartTime, EndTime,
+                GarageId, TotalCost, Miles, Purpose
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (
+            rental_id, data['car_id'], data['customer_id'],
+            start, end, pickup_garage_id, total_cost,
+            data['miles'], data['purpose']
+        ))
+
+        # Now, update the car's GarageId to the dropoff location in CarData table
+        dropoff_garage_id = data['dropoff_garage_id']  # Dropoff garage
+        cursor.execute('''
+            UPDATE CarData
+            SET GarageId = %s
+            WHERE CarId = %s
+        ''', (dropoff_garage_id, data['car_id']))
+
+        # Commit changes to the database
+        conn.commit()
+
+        return jsonify({'message': 'Rental successfully submitted'}), 200
+
+    except Exception as e:
+        # Rollback changes in case of an error
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # Login route to authenticate customers and businesses
 @app.route('/login', methods=['POST'])
