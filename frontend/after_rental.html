@@ -32,10 +32,11 @@
         end: urlParams.get('end'),
         purpose: urlParams.get('purpose'),
         miles: urlParams.get('miles'),
-        rate: urlParams.get('rate'),
+        total_cost: urlParams.get('total_cost'),
         dropoff: document.getElementById('dropoff').value,
         rating: document.getElementById('rating').value,
-        comments: document.getElementById('comments').value
+        comments: document.getElementById('comments').value,
+        pickup_garage_id: urlParams.get('pickup_garage_id'),  // include this
       };
 
       fetch('/submit_rental', {

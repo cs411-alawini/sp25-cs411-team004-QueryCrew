@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory, render_template
 import mysql.connector
+import random
 from mysql.connector import Error
 import os
 from datetime import datetime, timedelta
@@ -63,53 +64,54 @@ def after_rental():
     return send_from_directory('../frontend', 'after_rental.html')
 @app.route('/submit_rental', methods=['POST'])
 def submit_rental():
-    data = request.json
     try:
-        # Parse the start and end times
-        start = datetime.strptime(data['start'], "%Y-%m-%d %I:%M:%S %p")  # Pickup start time
-        end = datetime.strptime(data['end'], "%Y-%m-%d %I:%M:%S %p")  # Dropoff end time
-        
-        # Calculate the rental total cost
-        total_cost = float(data['rate']) * ((end - start).total_seconds() / 3600)  # total hours
+        data = request.get_json()
+        print("Received data:", data)
 
-        # Get pickup GarageId from the data (this is the GarageId where the car is picked up)
-        pickup_garage_id = data['pickup_garage_id']
-        
-        # Get the new rental ID (manually generating the next ID)
         conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COALESCE(MAX(RentalId), 0) + 1 FROM Rentals")
-        rental_id = cursor.fetchone()[0]
-
-        # Insert the rental record into the Rentals table
-        cursor.execute('''
-            INSERT INTO Rentals (
-                RentalId, CarId, CustomerId, StartTime, EndTime,
-                GarageId, TotalCost, Miles, Purpose
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (
-            rental_id, data['car_id'], data['customer_id'],
-            start, end, pickup_garage_id, total_cost,
-            data['miles'], data['purpose']
+        cur = conn.cursor()
+        rental_id = None
+        while True:
+            temp_id = random.randint(1, 39999)
+            cur.execute("SELECT 1 FROM Rentals WHERE RentalId = %s", (temp_id,))
+            if not cur.fetchone():
+                rental_id = temp_id
+                break
+        print("Rental_id:", rental_id)
+        # insert into Rentals
+        cur.execute("""
+            INSERT INTO Rentals (RentalId, CarId, CustomerId, StartTime, EndTime, GarageId, TotalCost, Miles, Purpose)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            rental_id,
+            data['car_id'],
+            data['customer_id'],
+            data['start'],
+            data['end'],
+            data['pickup_garage_id'],
+            data['total_cost'],
+            data['miles'],
+            data['purpose']
         ))
 
-        # Now, update the car's GarageId to the dropoff location in CarData table
-        dropoff_garage_id = data['dropoff_garage_id']  # Dropoff garage
-        cursor.execute('''
-            UPDATE CarData
-            SET GarageId = %s
+        # update car's garage location
+        cur.execute("""
+            UPDATE CarData SET GarageId = (
+                SELECT GarageId FROM GarageLocation WHERE City = %s LIMIT 1
+            )
             WHERE CarId = %s
-        ''', (dropoff_garage_id, data['car_id']))
+        """, (
+            data['dropoff'],
+            data['car_id']
+        ))
 
-        # Commit changes to the database
         conn.commit()
-
-        return jsonify({'message': 'Rental successfully submitted'}), 200
+        return jsonify({'success': True})
 
     except Exception as e:
-        # Rollback changes in case of an error
+        print("Error:", e)
         conn.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)})
 
 # Login route to authenticate customers and businesses
 @app.route('/login', methods=['POST'])
@@ -144,9 +146,10 @@ def available_vehicles():
     customer_id = request.args.get('customer_id')  # Optional but currently unused
     conn = get_db()
     if conn:
+        
         cursor = conn.cursor(dictionary=True)
         query = '''
-            SELECT CarData.Make, CarData.Model, CarData.Year, CarData.HourlyRate
+            SELECT CarData.CarId, CarData.Make, CarData.Model, CarData.Year, CarData.HourlyRate, CarData.GarageId
             FROM CarData
             JOIN Garages ON CarData.GarageId = Garages.GarageId
             JOIN GarageLocation ON 

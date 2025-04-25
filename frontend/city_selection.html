@@ -76,17 +76,22 @@ $.ajax({
           if (data.length > 0) {
             var rows = '';
             data.forEach(function(vehicle) {
-              rows += `<tr>
-                          <td>${vehicle.Make}</td>
-                          <td>${vehicle.Model}</td>
-                          <td>${vehicle.Year}</td>
-                          <td>${vehicle.HourlyRate}</td>
-                          <td> <a class="btn btn-success" 
-                            href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}">
-                            Rent
-                            </a>
-                          </td>
-                        </tr>`;
+                  rows += `<tr>
+                <td>${vehicle.CarId}</td>
+                <td>${vehicle.Make}</td>
+                <td>${vehicle.Model}</td>
+                <td>${vehicle.Year}</td>
+                <td>${vehicle.HourlyRate}</td>
+                <td>${vehicle.GarageId}</td>
+                <td>
+                  <a class="btn btn-success" 
+   href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}&pickup_garage_id=${vehicle.GarageId}">
+   Rent
+</a>
+
+                </td>
+              </tr>`;
+
             });
             $('#vehiclesTable').html(rows);
             $('#vehiclesList').show();

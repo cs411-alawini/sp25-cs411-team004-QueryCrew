@@ -81,13 +81,15 @@ if (window.location.pathname.includes('city_selection')) {
       vehicles.forEach(vehicle => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>${vehicle.CarId}</td>
           <td>${vehicle.Make}</td>
           <td>${vehicle.Model}</td>
           <td>${vehicle.Year}</td>
           <td>$${vehicle.HourlyRate}</td>
+          <td>$${vehicle.GarageId}</td>
           <td>
             <a class="btn btn-success" 
-               href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}">
+            href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}&pickup_garage_id=${vehicle.GarageId}"
               Rent
             </a>
           </td>
