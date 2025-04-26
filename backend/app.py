@@ -1,209 +1,175 @@
-from flask import Flask, jsonify, request, send_from_directory, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 import mysql.connector
-import random
-from mysql.connector import Error
-import os
-from datetime import datetime, timedelta
-
 
 app = Flask(__name__)
 
-# MySQL connection setup
-def get_db():
-    try:
-        conn = mysql.connector.connect(
-            host='34.57.170.47',  # Your MySQL host
-            user='sharonchristelda@gmail.com',  # Your MySQL username
-            password='QueryCrew',  # Your MySQL password
-            database='RentalDB'  # The name of your database
-        )
-        if conn.is_connected():
-            return conn
-    except Error as e:
-        print(f"Error: {e}")
-        return None
+# Setup Database connection (adjust your credentials if needed)
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="rental_db"   # Change to your database name
+)
 
-# API route to retrieve all rentals
-@app.route('/rentals', methods=['GET'])
-def get_rentals():
-    conn = get_db()
-    if conn:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM Rentals')
-        rentals = cursor.fetchall()
-        conn.close()
-        return jsonify(rentals)
-    else:
-        return jsonify({'error': 'Unable to connect to database'}), 500
-
-# Route to serve the HTML page from frontend/ folder
-@app.route('/')
-def home():
-    frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend'))
-    return send_from_directory(frontend_path, 'index.html')
-
-@app.route('/city_selection')
-def city_selection():
-    frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend'))
-    return send_from_directory(frontend_path, 'city_selection.html')
-
-# Serve static files (JS, CSS) from the frontend folder
-@app.route('/js/<path:filename>')
-def serve_js(filename):
-    return send_from_directory('frontend/js', filename)
-
-@app.route('/css/<path:filename>')
-def serve_css(filename):
-    return send_from_directory('frontend/css', filename)
-@app.route('/rent_form')
-def rent_form():
-    return send_from_directory('../frontend', 'rent_form.html')
-
-@app.route('/after_rental')
-def after_rental():
-    return send_from_directory('../frontend', 'after_rental.html')
-@app.route('/submit_rental', methods=['POST'])
-def submit_rental():
-    try:
-        data = request.get_json()
-        print("Received data:", data)
-
-        conn = get_db()
-        cur = conn.cursor()
-        rental_id = None
-        while True:
-            temp_id = random.randint(1, 39999)
-            cur.execute("SELECT 1 FROM Rentals WHERE RentalId = %s", (temp_id,))
-            if not cur.fetchone():
-                rental_id = temp_id
-                break
-        print("Rental_id:", rental_id)
-        # insert into Rentals
-        cur.execute("""
-            INSERT INTO Rentals (RentalId, CarId, CustomerId, StartTime, EndTime, GarageId, TotalCost, Miles, Purpose)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            rental_id,
-            data['car_id'],
-            data['customer_id'],
-            data['start'],
-            data['end'],
-            data['pickup_garage_id'],
-            data['total_cost'],
-            data['miles'],
-            data['purpose']
-        ))
-
-        # update car's garage location
-        cur.execute("""
-            UPDATE CarData SET GarageId = (
-                SELECT GarageId FROM GarageLocation WHERE City = %s LIMIT 1
-            )
-            WHERE CarId = %s
-        """, (
-            data['dropoff'],
-            data['car_id']
-        ))
-
-        conn.commit()
-        return jsonify({'success': True})
-
-    except Exception as e:
-        print("Error:", e)
-        conn.rollback()
-        return jsonify({'success': False, 'error': str(e)})
-
-# Login route to authenticate customers and businesses
+#########################################
+# Customer + Business Login Route
+#########################################
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user_type = data['userType']
-    user_id = data['userId']
-    conn = get_db()
-    cursor = conn.cursor()
+    user_type = data.get('userType')
+    user_id = data.get('userId')
 
     if user_type == 'customer':
-        cursor.execute('SELECT * FROM Customers WHERE CustomerId = %s', (user_id,))
+        return jsonify({'user_type': 'customer'})
+    elif user_type == 'business':
+        return jsonify({'user_type': 'business'})
     else:
-        cursor.execute('SELECT * FROM Garages WHERE GarageId = %s', (user_id,))
+        return jsonify({'error': 'Invalid user type'}), 400
 
-    result = cursor.fetchone()
+#########################################
+# Cities for Customers
+#########################################
+@app.route('/cities', methods=['GET'])
+def cities():
+    cursor = db.cursor()
+    cursor.execute("SELECT DISTINCT City FROM Garages")
+    results = cursor.fetchall()
     cursor.close()
-    conn.close()
 
-    if result:
-        if user_type == 'customer':
-            return jsonify({'message': 'Login successful', 'user_type': 'customer', 'user_id': user_id}), 200
-        else:
-            return jsonify({'message': 'Login successful', 'user_type': 'business'}), 200
-    else:
-        return jsonify({'error': 'Invalid ID'}), 401
+    cities_list = [row[0] for row in results]
+    return jsonify(cities_list)
 
-# API route for available vehicles based on the selected city
+#########################################
+# Available Vehicles for a selected City
+#########################################
 @app.route('/available_vehicles', methods=['GET'])
 def available_vehicles():
     city = request.args.get('city')
-    customer_id = request.args.get('customer_id')  # Optional but currently unused
-    conn = get_db()
-    if conn:
-        
-        cursor = conn.cursor(dictionary=True)
-        query = '''
-            SELECT CarData.CarId, CarData.Make, CarData.Model, CarData.Year, CarData.HourlyRate, CarData.GarageId
-            FROM CarData
-            JOIN Garages ON CarData.GarageId = Garages.GarageId
-            JOIN GarageLocation ON 
-                Garages.Latitude = GarageLocation.Latitude AND 
-                Garages.Longitude = GarageLocation.Longitude
-            WHERE GarageLocation.City = %s AND CarData.Availability = 1
-        '''
-        cursor.execute(query, (city,))
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
 
-        if results:
-            return jsonify(results)
-        else:
-            return jsonify([])  # Return an empty list so frontend handles it cleanly
-    else:
-        return jsonify({'error': 'DB connection failed'}), 500
+    cursor = db.cursor(dictionary=True)
+    query = """
+    SELECT v.CarId, v.Make, v.Model, v.Year, v.HourlyRate, v.GarageId
+    FROM Vehicles v
+    JOIN Garages g ON v.GarageId = g.GarageId
+    WHERE g.City = %s
+    """
+    cursor.execute(query, (city,))
+    vehicles = cursor.fetchall()
+    cursor.close()
 
-# Serve the customer page (for after login and city selection)
-@app.route('/customer')
-def customer_page():
-    return send_from_directory('../frontend', 'customer.html')
+    return jsonify(vehicles)
 
-# Route to add a rental (not yet implemented)
-def add_rental():
-    new_rental = request.get_json()  # Expecting JSON body in POST request
-    conn = get_db()
-    if conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO Rentals (CarId, CustomerId, StartTime, EndTime, GarageId, TotalCost, Miles, Purpose)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (new_rental['CarId'], new_rental['CustomerId'], new_rental['StartTime'],
-              new_rental['EndTime'], new_rental['GarageId'], new_rental['TotalCost'],
-              new_rental['Miles'], new_rental['Purpose']))
-        conn.commit()
-        conn.close()
-        return jsonify({'message': 'Rental added successfully'}), 201
-    else:
-        return jsonify({'error': 'Unable to connect to database'}), 500
-
-@app.route('/cities', methods=['GET'])
-def get_cities():
-    conn = get_db()
-    if conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT City FROM GarageLocation")
-        cities = [row[0] for row in cursor.fetchall()]
-        cursor.close()
-        conn.close()
-        return jsonify(cities)
-    else:
-        return jsonify({'error': 'Unable to connect to database'}), 500
+#########################################
+# Customer Submit Rental
+#########################################
+@app.route('/submit_rental', methods=['POST'])
+def submit_rental():
+    data = request.get_json()
     
+    cursor = db.cursor()
+    query = """
+    INSERT INTO Rentals (CarId, CustomerId, StartTime, EndTime, Purpose, MilesDriven, TotalCost, DropoffLocation, Rating, Comments, PickupGarageId)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (
+        data['car_id'],
+        data['customer_id'],
+        data['start'],
+        data['end'],
+        data['purpose'],
+        data['miles'],
+        data['total_cost'],
+        data['dropoff'],
+        data['rating'],
+        data['comments'],
+        data['pickup_garage_id']
+    ))
+    db.commit()
+    cursor.close()
+
+    return jsonify({'message': 'Rental submitted successfully'})
+
+#########################################
+# BUSINESS SIDE ROUTES
+#########################################
+
+# Add New Vehicle
+@app.route('/add_vehicle', methods=['POST'])
+def add_vehicle():
+    data = request.get_json()
+
+    cursor = db.cursor()
+    query = """
+    INSERT INTO Vehicles (GarageId, Make, Model, Year, HourlyRate)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (
+        data['garage_id'],
+        data['make'],
+        data['model'],
+        data['year'],
+        data['hourly_rate']
+    ))
+    db.commit()
+    cursor.close()
+
+    return jsonify({'message': 'Vehicle added successfully'})
+
+# Rental History for Business
+@app.route('/rental_history_data', methods=['GET'])
+def rental_history_data():
+    garage_id = request.args.get('garage_id')
+
+    cursor = db.cursor(dictionary=True)
+    query = """
+    SELECT CustomerId as customer_id, CarId as car_id, StartTime as start_time, EndTime as end_time, TotalCost as total_cost, Rating as rating
+    FROM Rentals
+    WHERE PickupGarageId = %s
+    ORDER BY StartTime DESC
+    """
+    cursor.execute(query, (garage_id,))
+    rentals = cursor.fetchall()
+    cursor.close()
+
+    return jsonify(rentals)
+
+#########################################
+# Home page to serve index.html
+#########################################
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+#########################################
+# Serve HTML Pages
+#########################################
+@app.route('/city_selection')
+def city_selection():
+    return render_template('city_selection.html')
+
+@app.route('/rent_form')
+def rent_form():
+    return render_template('rent_form.html')
+
+@app.route('/after_rental')
+def after_rental():
+    return render_template('after_rental.html')
+
+@app.route('/business_home')
+def business_home():
+    return render_template('business_home.html')
+
+@app.route('/add_vehicle_page')
+def add_vehicle_page():
+    return render_template('add_vehicle.html')
+
+@app.route('/rental_history')
+def rental_history():
+    return render_template('rental_history.html')
+
+#########################################
+# Start the Flask App
+#########################################
 if __name__ == '__main__':
     app.run(debug=True)
