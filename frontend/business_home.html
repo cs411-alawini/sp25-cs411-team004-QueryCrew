@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Business Dashboard</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h2>Business Dashboard</h2>
+    <div class="list-group">
+      <a href="#" class="list-group-item list-group-item-action" id="addVehicle">Add Vehicle</a>
+      <a href="#" class="list-group-item list-group-item-action" id="rentalHistory">View Rental History</a>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const garageId = urlParams.get('garage_id');
+
+    document.getElementById('addVehicle').href = `/add_vehicle?garage_id=${garageId}`;
+    document.getElementById('rentalHistory').href = `/rental_history?garage_id=${garageId}`;
+  </script>
+</body>
+</html>
