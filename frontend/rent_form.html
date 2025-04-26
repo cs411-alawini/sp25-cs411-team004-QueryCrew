@@ -11,14 +11,17 @@
       <input type="hidden" id="customerId" />
       <input type="hidden" id="rate" />
 
-      <input type="datetime-local" id="startTime" required>
-      <input type="datetime-local" id="endTime" required>
-      
-      <label>Purpose:</label>
-      <input type="text" id="purpose" required><br>
+      <label>Start Time:</label><br>
+      <input type="datetime-local" id="startTime" required><br><br>
 
-      <label>Miles:</label>
-      <input type="number" id="miles" required><br>
+      <label>End Time:</label><br>
+      <input type="datetime-local" id="endTime" required><br><br>
+      
+      <label>Purpose:</label><br>
+      <input type="text" id="purpose" required><br><br>
+
+      <label>Miles:</label><br>
+      <input type="number" id="miles" required><br><br>
 
       <p id="totalCostDisplay">Total Cost: $0.00</p>
 
@@ -27,59 +30,68 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const rate = parseFloat(urlParams.get('rate'));
-    document.getElementById('carId').value = urlParams.get('car_id');
-    document.getElementById('customerId').value = urlParams.get('customer_id');
-    document.getElementById('rate').value = rate;
+    document.addEventListener('DOMContentLoaded', function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const rate = parseFloat(urlParams.get('rate')) || 0;
+      const pickupGarageId = urlParams.get('pickup_garage_id') || '';
 
-    // function calculateTotalCost() {
-    //   const startRaw = document.getElementById('startTime').value;
-    //   const endRaw = document.getElementById('endTime').value;
-    //   const start = new Date(startRaw);
-    //   const end = new Date(endRaw);
-    //   const hours = (end - start) / (1000 * 60 * 60);
-    //   if (hours > 0) {
-    //     const total = (hours * rate).toFixed(2);
-    //     document.getElementById('totalCostDisplay').innerText = `Total Cost: $${total}`;
-    //   }
-    // }
-    function toMySQLFormat(date) {
-    return date.toISOString().slice(0, 19).replace('T', ' ');
-  }
+      // Populate hidden inputs
+      document.getElementById('carId').value = urlParams.get('car_id');
+      document.getElementById('customerId').value = urlParams.get('customer_id');
+      document.getElementById('rate').value = rate;
 
-    document.getElementById('startTime').addEventListener('blur', calculateTotalCost);
-    document.getElementById('endTime').addEventListener('blur', calculateTotalCost);
+      function toMySQLFormat(date) {
+        return date.toISOString().slice(0, 19).replace('T', ' ');
+      }
 
-    document.getElementById('rentalForm').addEventListener('submit', function(event) {
-  event.preventDefault();
+      function calculateTotalCost() {
+        const start = new Date(document.getElementById('startTime').value);
+        const end = new Date(document.getElementById('endTime').value);
+        const hours = (end - start) / (1000 * 60 * 60);
 
-  const pickupGarageId = urlParams.get('pickup_garage_id');
-  const rate = parseFloat(document.getElementById('rate').value);
-  const startRaw = document.getElementById('startTime').value;
-  const endRaw = document.getElementById('endTime').value;
-  const start = new Date(startRaw);
-  const end = new Date(endRaw);
-  const hours = (end - start) / (1000 * 60 * 60);
-  if (hours > 0) {
-    const total = (hours * rate).toFixed(2);
-    document.getElementById('totalCostDisplay').innerText = `Total Cost: $${total}`;
-  }
+        if (hours > 0) {
+          const total = (hours * rate).toFixed(2);
+          document.getElementById('totalCostDisplay').innerText = `Total Cost: $${total}`;
+        } else {
+          document.getElementById('totalCostDisplay').innerText = "Total Cost: $0.00";
+        }
+      }
 
-  const params = new URLSearchParams({
-    car_id: document.getElementById('carId').value,
-    customer_id: document.getElementById('customerId').value,
-    start: toMySQLFormat(start),
-    end: toMySQLFormat(end),
-    purpose: document.getElementById('purpose').value,
-    miles: document.getElementById('miles').value,
-    pickup_garage_id: pickupGarageId,
-    total_cost: total
-  });
+      document.getElementById('startTime').addEventListener('blur', calculateTotalCost);
+      document.getElementById('endTime').addEventListener('blur', calculateTotalCost);
 
-  console.log("Redirecting with params:", params.toString());
-  window.location.href = `/after_rental?${params.toString()}`;
-});
+      document.getElementById('rentalForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const startRaw = document.getElementById('startTime').value;
+        const endRaw = document.getElementById('endTime').value;
+        const start = new Date(startRaw);
+        const end = new Date(endRaw);
+        const hours = (end - start) / (1000 * 60 * 60);
+
+        if (hours <= 0) {
+          alert("End time must be after start time.");
+          return;
+        }
+
+        const total = (hours * rate).toFixed(2);
+
+        const params = new URLSearchParams({
+          car_id: document.getElementById('carId').value,
+          customer_id: document.getElementById('customerId').value,
+          start: toMySQLFormat(start),
+          end: toMySQLFormat(end),
+          purpose: document.getElementById('purpose').value,
+          miles: document.getElementById('miles').value,
+          pickup_garage_id: pickupGarageId,
+          total_cost: total
+        });
+
+        console.log("Redirecting to /after_rental with:", params.toString());
+        window.location.href = `/after_rental?${params.toString()}`;
+      });
+    });
   </script>
 </body>
 </html>
+
