@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rental History</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h2>Rental History</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer ID</th>
+          <th>Car ID</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Total Cost</th>
+          <th>Rating</th>
+        </tr>
+      </thead>
+      <tbody id="historyTable">
+        <!-- Filled dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const garageId = urlParams.get('garage_id');
+
+    fetch(`/rental_history_data?garage_id=${garageId}`)
+      .then(response => response.json())
+      .then(data => {
+        let rows = '';
+        data.forEach(rental => {
+          rows += `
+            <tr>
+              <td>${rental.customer_id}</td>
+              <td>${rental.car_id}</td>
+              <td>${rental.start_time}</td>
+              <td>${rental.end_time}</td>
+              <td>$${rental.total_cost}</td>
+              <td>${rental.rating}</td>
+            </tr>
+          `;
+        });
+        document.getElementById('historyTable').innerHTML = rows;
+      });
+  </script>
+</body>
+</html>
