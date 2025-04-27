@@ -1,204 +1,407 @@
 <!-- <!DOCTYPE html>
+
 <html>
+
 <head>
+
   <title>Dropoff & Feedback</title>
+
 </head>
+
 <body>
+
   <div class="container mt-5">
+
     <h2>Complete Rental</h2>
+
     <form id="finalForm">
 
+ 
+
       <label>Dropoff City:</label>
+
       <select id="dropoffCity">
+
         <option value="">Select a city</option>
+
       </select><br>
+
+ 
 
       <label>Dropoff Garage ID:</label>
+
       <select id="dropoffGarageId">
+
         <option value="">Select a garage</option>
+
       </select><br>
 
+ 
+
       <label>Rating (0-5):</label>
+
       <input type="number" id="rating" min="0" max="5"><br>
 
+ 
+
       <label>Comments:</label>
+
       <textarea id="comments"></textarea><br>
 
+ 
+
       <button type="submit" id="submitRentalBtn">Submit Rental</button>
+
     </form>
+
   </div>
 
+ 
+
   <script>
+
     // const urlParams = new URLSearchParams(window.location.search);
+
     // document.getElementById('finalForm').addEventListener('submit', function(e) {
+
     //   e.preventDefault();
 
+ 
+
     //   const rentalData = {
+
     //     car_id: urlParams.get('car_id'),
+
     //     customer_id: urlParams.get('customer_id'),
+
     //     start: urlParams.get('start'),
+
     //     end: urlParams.get('end'),
+
     //     purpose: urlParams.get('purpose'),
+
     //     miles: urlParams.get('miles'),
+
     //     total_cost: urlParams.get('total_cost'),
+
     //     dropoff: document.getElementById('dropoff').value,
+
     //     rating: document.getElementById('rating').value,
+
     //     comments: document.getElementById('comments').value,
+
     //     pickup_garage_id: urlParams.get('pickup_garage_id'),  // include this
+
     //   };
 
+ 
+
     //   fetch('/submit_rental', {
+
     //     method: 'POST',
+
     //     headers: { 'Content-Type': 'application/json' },
+
     //     body: JSON.stringify(rentalData)
+
     //   }).then(res => res.json())
+
     //     .then(data => {
+
     //       alert('Rental submitted!');
+
     //       window.location.href = '/customer';
+
     //     });
+
     // });
+
     document.getElementById('submitRentalBtn').addEventListener('click', async function(event) {
+
   event.preventDefault();
 
+ 
+
   const params = new URLSearchParams(window.location.search);
+
   const rentalData = {
+
     car_id: params.get('car_id'),
+
     customer_id: params.get('customer_id'),
+
     start: params.get('start'),
+
     end: params.get('end'),
+
     purpose: params.get('purpose'),
+
     miles: params.get('miles'),
+
     pickup_garage_id: params.get('pickup_garage_id'),
+
     total_cost: params.get('total_cost'),
+
     dropoff: document.getElementById('dropoff').value  // <-- FIXED
+
   };
 
+ 
+
   try {
+
     const response = await fetch('/submit_rental', {
+
       method: 'POST',
+
       headers: {
+
         'Content-Type': 'application/json'
+
       },
+
       body: JSON.stringify(rentalData)
+
     });
+
+ 
 
     const result = await response.json();
+
     if (result.success) {
+
       // Redirect to city selection after successful rental
+
       window.location.href = '/city_selection';
+
     } else {
+
       alert('Error submitting rental: ' + result.error);
+
     }
+
   } catch (error) {
+
     console.error('Request failed:', error);
+
     alert('Failed to submit rental.');
+
   }
+
 });
 
+ 
+
   </script>
+
 </body>
+
 </html> -->
 
+ 
+
 <!DOCTYPE html>
+
 <html>
+
 <head>
+
   <title>Dropoff & Feedback</title>
+
 </head>
+
 <body>
+
   <div class="container mt-5">
+
     <h2>Complete Rental</h2>
+
     <form id="finalForm">
-      
+
+     
+
       <label>Dropoff City:</label>
+
       <select id="dropoffCity">
+
         <option value="">Select a city</option>
+
       </select><br>
+
+ 
 
       <label>Dropoff Garage ID:</label>
+
       <select id="dropoffGarageId">
+
         <option value="">Select a garage</option>
+
       </select><br>
 
+ 
+
       <label>Rating (0-5):</label>
+
       <input type="number" id="rating" min="0" max="5"><br>
 
+ 
+
       <label>Comments:</label>
+
       <textarea id="comments"></textarea><br>
 
+ 
+
       <button type="submit" id="submitRentalBtn">Submit Rental</button>
+
     </form>
+
   </div>
 
+ 
+
   <script>
+
     const dropoffCity = document.getElementById('dropoffCity');
+
     const dropoffGarageId = document.getElementById('dropoffGarageId');
 
+ 
+
     // Load all cities when page loads
+
     window.onload = async () => {
+
       const res = await fetch('/cities');
+
       const cities = await res.json();
+
       cities.forEach(city => {
+
         const option = document.createElement('option');
+
         option.value = city;
+
         option.textContent = city;
+
         dropoffCity.appendChild(option);
+
       });
+
     };
 
+ 
+
     // When city changes, load corresponding garage IDs
+
     dropoffCity.addEventListener('change', async () => {
+
       const city = dropoffCity.value;
+
       dropoffGarageId.innerHTML = '<option value="">Select a garage</option>'; // clear previous garages
+
       if (city) {
+
         const res = await fetch(`/garages_by_city?city=${encodeURIComponent(city)}`);
+
         const garages = await res.json();
+
         garages.forEach(garage => {
+
           const option = document.createElement('option');
+
           option.value = garage.GarageId;
+
           option.textContent = `Garage ${garage.GarageId}`;
+
           dropoffGarageId.appendChild(option);
+
         });
+
       }
+
     });
+
+ 
 
     // Submit rental
+
     document.getElementById('finalForm').addEventListener('submit', async (e) => {
+
       e.preventDefault();
 
+ 
+
       const params = new URLSearchParams(window.location.search);
+
       const rentalData = {
+
         car_id: params.get('car_id'),
+
         customer_id: params.get('customer_id'),
+
         start: params.get('start'),
+
         end: params.get('end'),
+
         purpose: params.get('purpose'),
+
         miles: params.get('miles'),
+
         pickup_garage_id: params.get('pickup_garage_id'),
+
         total_cost: params.get('total_cost'),
+
         dropoff_garage_id: dropoffGarageId.value,  // selected GarageId
+
         rating: document.getElementById('rating').value,
+
         comments: document.getElementById('comments').value
+
       };
 
+ 
+
       try {
+
         const response = await fetch('/submit_rental', {
+
           method: 'POST',
+
           headers: { 'Content-Type': 'application/json' },
+
           body: JSON.stringify(rentalData)
+
         });
 
+ 
+
         const result = await response.json();
+
         if (result.success) {
+
           alert('Rental submitted successfully!');
-          window.location.href = '/city_selection';  // redirect to city selection
+
+          window.location.href = `/customer?CustomerId=${rentalData.customer_id}`;
+
         } else {
+
           alert('Error submitting rental: ' + result.error);
+
         }
+
       } catch (error) {
+
         console.error('Request failed:', error);
+
         alert('Failed to submit rental.');
+
       }
+
     });
+
   </script>
+
 </body>
+
 </html>

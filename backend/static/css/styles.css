@@ -1,0 +1,25 @@
+/* Container for the button */
+
+.button-container {
+
+    display: flex;            /* Align buttons horizontally */
+
+    gap: 20px;                /* Space between buttons */
+
+    justify-content: center;  /* Center buttons */
+
+    margin-top: 20px;         /* Optional: Add space above the buttons */
+
+  }
+
+ 
+
+  /* Add some styling for the buttons */
+
+  .btn {
+
+    padding: 10px 20px;
+
+    font-size: 16px;
+
+  }

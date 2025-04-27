@@ -1,169 +1,157 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Rental System</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-</head>
-
-<body>
-  <div class="container mt-5" id="loginSection">
-    <div class="card">
-      <div class="card-body">
-        <h3 class="card-title">Login</h3>
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="userType">Login As:</label>
-            <select class="form-control" id="userType" name="userType" required>
-              <option value="">Select...</option>
-              <option value="customer">Customer</option>
-              <option value="business">Business</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="userId">Customer ID / Garage ID</label>
-            <input type="number" class="form-control" id="userId" placeholder="Enter ID" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <script>
-  $(document).ready(function() {
-    $('#loginForm').submit(function(event) {
-      event.preventDefault();  // Prevent form submission
-
-      // Get form data
-      var userType = $('#userType').val();
-      var userId = $('#userId').val();
-
-      // Send login request to the backend
-      $.ajax({
-        url: '/login',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ userType: userType, userId: userId }),
-        success: function(response) {
-          if (response.user_type === 'customer') {
-            // Redirect to city selection page with customer_id
-            window.location.href = `/city_selection?customer_id=${userId}`;
-          } else {
-            alert('Business login successful');
-            // Redirect or handle business login
-          }
-        },
-        error: function() {
-          alert('Invalid login credentials.');
-        }
-      });
-    });
-  });
-  </script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <title>Rental System</title>
+
+  <title>RentalHub Login</title>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+ 
+
+  <!-- Bootstrap CSS -->
+
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+ 
+
+  <!-- jQuery and Bootstrap JS -->
+
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
 </head>
 
+ 
+
 <body>
+
   <div class="container mt-5" id="loginSection">
+
     <div class="card">
+
       <div class="card-body">
+
         <h3 class="card-title">Login</h3>
+
         <form id="loginForm">
+
           <div class="form-group">
+
             <label for="userType">Login As:</label>
+
             <select class="form-control" id="userType" name="userType" required>
+
               <option value="">Select...</option>
+
               <option value="customer">Customer</option>
+
               <option value="business">Business</option>
+
             </select>
+
           </div>
+
           <div class="form-group">
-            <label for="userId">Customer ID / Garage ID</label>
+
+            <label for="userId">Customer ID / Garage ID:</label>
+
             <input type="number" class="form-control" id="userId" placeholder="Enter ID" required>
+
           </div>
+
           <button type="submit" class="btn btn-primary">Login</button>
+
         </form>
+
       </div>
+
     </div>
+
   </div>
+
+ 
+
   <script>
+
     $(document).ready(function() {
+
       $('#loginForm').submit(function(event) {
-        event.preventDefault();  // Prevent form submission
-  
-        // Get form data
+
+        event.preventDefault();  // Prevent default form submission
+
+       
+
         var userType = $('#userType').val();
+
         var userId = $('#userId').val();
-  
-        // Send login request to the backend
+
+ 
+
         $.ajax({
+
           url: '/login',
+
           type: 'POST',
+
           contentType: 'application/json',
+
           data: JSON.stringify({ userType: userType, userId: userId }),
+
           success: function(response) {
+
             if (response.user_type === 'customer') {
-              // Redirect to customer home page with customer_id
+
+              // Save customer_id to localStorage
+
+              localStorage.setItem('customer_id', response.customer_id);
+
+ 
+
+              // Redirect to customer home page with customer_id in URL
+
               window.location.href = `/customer?CustomerId=${response.customer_id}`;
+
+            } else if (response.user_type === 'business') {
+
+              // Save garage_id to localStorage (if needed later)
+
+              localStorage.setItem('garage_id', response.garage_id);
+
+ 
+
+              // Redirect to business home page (you can update this URL)
+
+              window.location.href = `/business?GarageId=${response.garage_id}`;
+
             } else {
-              alert('Business login successful');
-              // Redirect or handle business login
+
+              alert('Unknown user type.');
+
             }
+
           },
+
           error: function() {
+
             alert('Invalid login credentials.');
+
           }
+
         });
+
       });
+
     });
+
   </script>
-<!-- 
-  <script>
-  $(document).ready(function() {
-    $('#loginForm').submit(function(event) {
-      event.preventDefault();  // Prevent form submission
 
-      // Get form data
-      var userType = $('#userType').val();
-      var userId = $('#userId').val();
-
-      // Send login request to the backend
-      $.ajax({
-        url: '/login',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ userType: userType, userId: userId }),
-        success: function(response) {
-          if (response.redirect_to) {
-            // Redirect to the URL specified by the backend
-            window.location.href = response.redirect_to;
-          } else {
-            alert('Invalid login credentials.');
-          }
-        },
-        error: function() {
-          alert('Invalid login credentials.');
-        }
-      });
-    });
-  });
-  </script> -->
 </body>
+
 </html>

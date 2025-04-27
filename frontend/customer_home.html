@@ -1,21 +1,91 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
+
 <head>
+
   <title>Welcome to RentalHub!</title>
+
+  <link rel="stylesheet" href="/static/css/styles.css">
+
 </head>
+
 <body>
+
   <div class="container">
+
     <h2>Welcome to RentalHub!</h2>
+
     <p id="welcomeMessage"></p>
 
-    <!-- Profile button -->
-    <button onclick="window.location.href='/profile'">Go to Profile</button>
+ 
+
+    <!-- Button container -->
+
+    <div class="button-container">
+
+        <!-- Profile button -->
+
+        <button id="profileButton" class="btn btn-primary">Go to Profile</button>
+
+ 
+
+        <!-- Start Rental button -->
+
+        <!-- <form action="/city_selection" method="get">
+
+          <button type="submit" class="btn btn-primary">Start a Rental</button>
+
+        </form> -->
+
+        <button id="rentalButton" class="btn btn-primary">Start a Rental</button>
+
+    </div>
+
   </div>
 
+ 
+
   <script>
-    // Get user information from the backend (you can set this on login)
-    const userId = localStorage.getItem('customer_id');
-    document.getElementById('welcomeMessage').innerText = `Hello, Customer ${userId}`;
+
+    // Get customer ID from URL
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const customerId = urlParams.get('CustomerId');
+
+ 
+
+    if (customerId) {
+
+      document.getElementById('welcomeMessage').innerText = `Hello, Customer ${customerId}`;
+
+     
+
+      // Redirect to Profile Page when the button is clicked
+
+      document.getElementById('profileButton').onclick = function() {
+
+        window.location.href = `/profile?CustomerId=${customerId}`;
+
+      };
+
+      document.getElementById('rentalButton').onclick = function() {
+
+        window.location.href = `/city_selection?CustomerId=${customerId}`;
+
+      };
+
+    } else {
+
+      alert('Customer ID not found!');
+
+      window.location.href = '/'; // Redirect to login if no CustomerId
+
+    }
+
   </script>
+
 </body>
+
 </html>
