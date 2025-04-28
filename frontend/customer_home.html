@@ -90,9 +90,20 @@
           return response.json();
         })
         .then(data => {
-          document.getElementById('totalSpending').innerText = `$${data.TotalSpending.toFixed(2)}`;
-          document.getElementById('averageRating').innerText = data.AverageRating.toFixed(2);
-          document.getElementById('spendingRank').innerText = `#${data.CustomerSpendingRank}`;
+          // document.getElementById('totalSpending').innerText = `$${data.TotalSpending.toFixed(2)}`;
+          // document.getElementById('averageRating').innerText = data.AverageRating.toFixed(2);
+          // document.getElementById('spendingRank').innerText = `#${data.CustomerSpendingRank}`;
+          
+          document.getElementById('totalSpending').innerText = `$${Number(data.TotalSpending).toFixed(2)}`;
+          document.getElementById('averageRating').innerText = Number(data.AverageRating).toFixed(2);
+
+          // Handle null spending rank cleanly
+          if (data.CustomerSpendingRank === null) {
+            document.getElementById('spendingRank').innerText = 'N/A';
+          } else {
+            document.getElementById('spendingRank').innerText = `#${data.CustomerSpendingRank}`;
+}
+
         })
         .catch(error => {
           console.error('Error fetching customer summary:', error);
