@@ -1,195 +1,88 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-
   <title>Profile Page</title>
-
 </head>
-
 <body>
-
   <div class="container">
-
     <h2>Update Your Profile</h2>
-
     <form id="profileForm">
-
       <label for="name">Name:</label>
-
       <input type="text" id="name" required><br>
 
- 
-
       <label for="email">Email:</label>
-
       <input type="email" id="email" required><br>
 
- 
-
       <label for="phone">Phone Number:</label>
-
       <input type="text" id="phone" required><br>
-
- 
-
       <label for="age">Age:</label>
-
       <input type="number" id="age" required><br>
-
- 
-
       <button type="submit">Update Profile</button>
-
     </form>
-
   </div>
 
- 
 
   <script>
-
-    // Get CustomerId from URL query parameters
-
     const urlParams = new URLSearchParams(window.location.search);
-
     const userId = urlParams.get('CustomerId');
-
- 
-
     if (!userId) {
-
       alert('Customer ID is missing from the URL');
-
-      window.location.href = '/';  // Redirect to home page or login page
-
+      window.location.href = '/';  
     }
-
- 
-
-    // Load current user data and populate the fields
-
     window.onload = async () => {
-
       try {
-
         const res = await fetch(`/customer_data/${userId}`);
-
         const customerData = await res.json();
-
- 
-
-        // Check if we successfully retrieved customer data
-
         if (customerData.error) {
-
           alert('Customer data not found!');
-
           return;
-
         }
-
- 
 
         document.getElementById('name').value = customerData.Name;
-
         document.getElementById('email').value = customerData.Email;
-
         document.getElementById('phone').value = customerData.PhoneNumber;
-
         document.getElementById('age').value = customerData.Age;
-
       } catch (error) {
-
         console.error('Error fetching customer data:', error);
-
         alert('Error fetching customer data.');
-
       }
-
     };
 
- 
-
-    // Submit updated profile data
-
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
-
       e.preventDefault();
 
- 
-
       const updatedData = {
-
         customer_id: userId,
-
         name: document.getElementById('name').value,
-
         email: document.getElementById('email').value,
-
         phone: document.getElementById('phone').value,
-
         age: document.getElementById('age').value
-
       };
 
- 
-
-      // Simple client-side validation (just checking if required fields are filled)
-
       if (!updatedData.name || !updatedData.email || !updatedData.phone || !updatedData.age) {
-
         alert('All fields are required!');
-
         return;
-
       }
-
- 
 
       try {
-
         const response = await fetch('/update_profile', {
-
           method: 'POST',
-
           headers: {
-
             'Content-Type': 'application/json'
-
           },
-
           body: JSON.stringify(updatedData)
-
         });
-
- 
-
         const result = await response.json();
-
         if (result.success) {
-
           alert('Profile updated successfully!');
-
         } else {
-
           alert('Error updating profile: ' + result.error);
-
         }
-
       } catch (error) {
-
         console.error('Request failed:', error);
-
         alert('Failed to update profile.');
-
       }
-
     });
-
   </script>
-
 </body>
-
 </html>

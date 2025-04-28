@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Home</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Use latest jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -30,7 +30,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Garage data will be populated here -->
+    
                 </tbody>
             </table>
         </div>
@@ -38,9 +38,9 @@
 
     <script>
         $(document).ready(function() {
-            // Fetch and populate the city dropdown on page load
+            // Fetch and populate the city dropdown
             $.ajax({
-                url: '/cities',  // Ensure this URL is correct and accessible
+                url: '/cities',  
                 method: 'GET',
                 success: function(response) {
                     if (Array.isArray(response) && response.length > 0) {
@@ -68,7 +68,7 @@
                         data: JSON.stringify({ city: selectedCity }),
                         success: function(response) {
                             const garages = response.garages;
-                            $('#garagesTable tbody').empty(); // Clear the table before appending new data
+                            $('#garagesTable tbody').empty(); 
                             
                             if (garages.length > 0) {
                                 garages.forEach(garage => {
@@ -80,7 +80,7 @@
                                         </tr>
                                     `);
                                 });
-                                $('#garagesInfo').show(); // Show the garage info table
+                                $('#garagesInfo').show();
                             } else {
                                 $('#garagesInfo').hide();
                                 alert('No garages found for the selected city.');

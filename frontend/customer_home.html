@@ -5,19 +5,12 @@
 <head>
 
   <title>Welcome to RentalHub!</title>
-
   <link rel="stylesheet" href="/static/css/styles.css">
-
 </head>
-
 <body>
-
   <div class="container">
-
     <h2>Welcome to RentalHub!</h2>
-
     <p id="welcomeMessage"></p>
-    <!-- Customer Summary Section -->
     <div id="customerSummary" style="margin-top: 20px;">
       <h3>Your Rental Summary:</h3>
       <p><strong>Total Spending:</strong> <span id="totalSpending">Loading...</span></p>
@@ -27,27 +20,13 @@
  
 
     <!-- Button container -->
-
     <div class="button-container">
 
         <!-- Profile button -->
-
         <button id="profileButton" class="btn btn-primary">Go to Profile</button>
-
- 
-
         <!-- Start Rental button -->
-
-        <!-- <form action="/city_selection" method="get">
-
-          <button type="submit" class="btn btn-primary">Start a Rental</button>
-
-        </form> -->
-
         <button id="rentalButton" class="btn btn-primary">Start a Rental</button>
-
     </div>
-
   </div>
 
  
@@ -57,31 +36,20 @@
     // Get customer ID from URL
 
     const urlParams = new URLSearchParams(window.location.search);
-
     const customerId = urlParams.get('CustomerId');
 
- 
-
     if (customerId) {
-
       document.getElementById('welcomeMessage').innerText = `Hello, Customer ${customerId}`;
-
-     
 
       // Redirect to Profile Page when the button is clicked
 
       document.getElementById('profileButton').onclick = function() {
-
         window.location.href = `/profile?CustomerId=${customerId}`;
-
       };
 
       document.getElementById('rentalButton').onclick = function() {
-
         window.location.href = `/city_selection?CustomerId=${customerId}`;
-
       };
-      // Fetch Customer Rental Summary
       fetch(`/customer_summary/${customerId}`)
         .then(response => {
           if (!response.ok) {
@@ -90,14 +58,10 @@
           return response.json();
         })
         .then(data => {
-          // document.getElementById('totalSpending').innerText = `$${data.TotalSpending.toFixed(2)}`;
-          // document.getElementById('averageRating').innerText = data.AverageRating.toFixed(2);
-          // document.getElementById('spendingRank').innerText = `#${data.CustomerSpendingRank}`;
-          
+
           document.getElementById('totalSpending').innerText = `$${Number(data.TotalSpending).toFixed(2)}`;
           document.getElementById('averageRating').innerText = Number(data.AverageRating).toFixed(2);
 
-          // Handle null spending rank cleanly
           if (data.CustomerSpendingRank === null) {
             document.getElementById('spendingRank').innerText = 'N/A';
           } else {
@@ -112,15 +76,9 @@
           document.getElementById('spendingRank').innerText = 'Unavailable';
         });
     } else {
-
       alert('Customer ID not found!');
-
-      window.location.href = '/'; // Redirect to login if no CustomerId
-
+      window.location.href = '/'; 
     }
-
   </script>
-
 </body>
-
 </html>

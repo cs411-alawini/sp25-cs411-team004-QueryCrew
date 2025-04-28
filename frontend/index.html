@@ -1,150 +1,71 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <title>RentalHub Login</title>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
- 
-
-  <!-- Bootstrap CSS -->
-
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-
- 
-
-  <!-- jQuery and Bootstrap JS -->
-
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
 </head>
 
- 
-
 <body>
-
   <div class="container mt-5" id="loginSection">
-
     <div class="card">
-
       <div class="card-body">
-
         <h3 class="card-title">Login</h3>
-
         <form id="loginForm">
-
           <div class="form-group">
-
             <label for="userType">Login As:</label>
-
             <select class="form-control" id="userType" name="userType" required>
-
               <option value="">Select...</option>
-
               <option value="customer">Customer</option>
-
               <option value="business">Business</option>
-
             </select>
-
           </div>
-
           <div class="form-group">
-
             <label for="userId">Customer ID / Business ID:</label>
-
             <input type="number" class="form-control" id="userId" placeholder="Enter ID" required>
-
           </div>
-
           <button type="submit" class="btn btn-primary">Login</button>
-
         </form>
-
       </div>
-
     </div>
-
   </div>
 
- 
-
   <script>
-
     $(document).ready(function() {
-
       $('#loginForm').submit(function(event) {
-
-        event.preventDefault();  // Prevent default form submission
-
-       
-
+        event.preventDefault(); 
         var userType = $('#userType').val();
-
         var userId = $('#userId').val();
 
- 
-
         $.ajax({
-
           url: '/login',
-
           type: 'POST',
-
           contentType: 'application/json',
-
           data: JSON.stringify({ userType: userType, userId: userId }),
-
           success: function(response) {
-
             if (response.user_type === 'customer') {
-
-              // Save customer_id to localStorage
-
               localStorage.setItem('customer_id', response.customer_id);
 
- 
-
               // Redirect to customer home page with customer_id in URL
-
               window.location.href = `/customer?CustomerId=${response.customer_id}`;
-
             } else if (response.user_type === 'business') {
               // Redirect to business home page
-
               window.location.href = response.redirect_to;
-
             } else {
-
               alert('Unknown user type.');
-
             }
-
           },
-
           error: function() {
-
             alert('Invalid login credentials.');
-
           }
-
         });
-
       });
-
     });
-
   </script>
-
 </body>
-
 </html>
