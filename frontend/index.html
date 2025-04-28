@@ -60,7 +60,7 @@
 
           <div class="form-group">
 
-            <label for="userId">Customer ID / Garage ID:</label>
+            <label for="userId">Customer ID / Business ID:</label>
 
             <input type="number" class="form-control" id="userId" placeholder="Enter ID" required>
 
@@ -119,16 +119,9 @@
               window.location.href = `/customer?CustomerId=${response.customer_id}`;
 
             } else if (response.user_type === 'business') {
+              // Redirect to business home page
 
-              // Save garage_id to localStorage (if needed later)
-
-              localStorage.setItem('garage_id', response.garage_id);
-
- 
-
-              // Redirect to business home page (you can update this URL)
-
-              window.location.href = `/business?GarageId=${response.garage_id}`;
+              window.location.href = response.redirect_to;
 
             } else {
 

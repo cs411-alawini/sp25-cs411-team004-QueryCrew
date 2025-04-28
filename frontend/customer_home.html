@@ -17,7 +17,13 @@
     <h2>Welcome to RentalHub!</h2>
 
     <p id="welcomeMessage"></p>
-
+    <!-- Customer Summary Section -->
+    <div id="customerSummary" style="margin-top: 20px;">
+      <h3>Your Rental Summary:</h3>
+      <p><strong>Total Spending:</strong> <span id="totalSpending">Loading...</span></p>
+      <p><strong>Average Rating:</strong> <span id="averageRating">Loading...</span></p>
+      <p><strong>Spending Rank:</strong> <span id="spendingRank">Loading...</span></p>
+    </div>
  
 
     <!-- Button container -->
@@ -75,7 +81,25 @@
         window.location.href = `/city_selection?CustomerId=${customerId}`;
 
       };
-
+      // Fetch Customer Rental Summary
+      fetch(`/customer_summary/${customerId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch customer summary');
+          }
+          return response.json();
+        })
+        .then(data => {
+          document.getElementById('totalSpending').innerText = `$${data.TotalSpending.toFixed(2)}`;
+          document.getElementById('averageRating').innerText = data.AverageRating.toFixed(2);
+          document.getElementById('spendingRank').innerText = `#${data.CustomerSpendingRank}`;
+        })
+        .catch(error => {
+          console.error('Error fetching customer summary:', error);
+          document.getElementById('totalSpending').innerText = 'Unavailable';
+          document.getElementById('averageRating').innerText = 'Unavailable';
+          document.getElementById('spendingRank').innerText = 'Unavailable';
+        });
     } else {
 
       alert('Customer ID not found!');

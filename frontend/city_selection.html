@@ -5,177 +5,93 @@
 <head>
 
   <title>City Selection - Rental System</title>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
 </head>
 
- 
-
 <body>
-
   <div class="container mt-5">
-
     <h2>Select a City</h2>
-
     <form id="citySelectionForm">
-
       <div class="form-group">
-
         <label for="city">Choose a City:</label>
-
         <select class="form-control" id="city" required>
-
             <option value="">Select a City</option>
-
           </select>
-
       </div>
-
       <button type="submit" class="btn btn-primary">Show Available Vehicles</button>
-
     </form>
 
- 
-
     <div id="vehiclesList" class="mt-4" style="display:none;">
-
       <h3>Available Vehicles</h3>
-
       <table class="table">
-
         <thead>
-
           <tr>
-
             <th>CarId</th>
-
             <th>Make</th>
-
             <th>Model</th>
-
             <th>Year</th>
-
             <th>Hourly Rate</th>
-
             <th>GarageId</th> <!-- Add this -->
-
           </tr>
-
         </thead>
-
         <tbody id="vehiclesTable">
-
           <!-- Filled dynamically via JavaScript -->
-
         </tbody>
-
       </table>     
-
     </div>
-
   </div>
-
- 
-
   <script>
 
 $.ajax({
-
   url: '/cities',
-
   method: 'GET',
-
   success: function(data) {
-
     if (Array.isArray(data)) {
-
       data.forEach(function(city) {
-
         $('#city').append(`<option value="${city}">${city}</option>`);
-
       });
-
     } else {
-
       alert('Failed to load cities');
-
     }
-
   },
 
   error: function() {
-
     alert('Error loading cities');
-
   }
-
 });
 
+  $(document).ready(function() {
+    $('#citySelectionForm').submit(function(event) {
+      event.preventDefault();
+      var city = $('#city').val();
+      var customerId = new URLSearchParams(window.location.search).get('CustomerId');
  
 
-  $(document).ready(function() {
-
-    $('#citySelectionForm').submit(function(event) {
-
-      event.preventDefault();
-
-    
-
-      var city = $('#city').val();
-
-      var customerId = new URLSearchParams(window.location.search).get('CustomerId');
-
-    
-
       // Fetch available vehicles based on selected city
-
       $.ajax({
-
         url: '/available_vehicles',
-
         method: 'GET',
-
         data: { city: city, customer_id: customerId },
-
         success: function(data) {
-
           if (data.length > 0) {
-
             var rows = '';
-
             data.forEach(function(vehicle) {
-
                   rows += `<tr>
-
                 <td>${vehicle.CarId}</td>
-
                 <td>${vehicle.Make}</td>
-
                 <td>${vehicle.Model}</td>
-
                 <td>${vehicle.Year}</td>
-
                 <td>${vehicle.HourlyRate}</td>
-
                 <td>${vehicle.GarageId}</td>
-
                 <td>
-
                   <a class="btn btn-success"
 
    href="/rent_form?car_id=${vehicle.CarId}&customer_id=${customerId}&rate=${vehicle.HourlyRate}&pickup_garage_id=${vehicle.GarageId}">
-
    Rent
 
 </a>
@@ -183,39 +99,22 @@ $.ajax({
  
 
                 </td>
-
               </tr>`;
-
- 
-
             });
-
             $('#vehiclesTable').html(rows);
-
             $('#vehiclesList').show();
-
           } else {
-
             alert('No available vehicles found.');
-
           }
-
         },
 
         error: function() {
-
           alert('Error fetching available vehicles.');
-
         }
-
       });
-
     });
-
   });
 
   </script>
-
 </body>
-
 </html>
