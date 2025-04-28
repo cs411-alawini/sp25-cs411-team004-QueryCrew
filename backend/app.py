@@ -598,47 +598,49 @@ def available_vehicles():
 
 # Serve the customer home page (for after login and city selection)
 
-@app.route('/customer')
+@app.route('/customer', methods=['GET'], strict_slashes=False)
 
 def customer_page():
 
     return send_from_directory('../frontend', 'customer_home.html')
 
+
+
  
 
 # Route to add a rental (not yet implemented)
 
-def add_rental():
+# def add_rental():
 
-    new_rental = request.get_json()  # Expecting JSON body in POST request
+#     new_rental = request.get_json()  # Expecting JSON body in POST request
 
-    conn = get_db()
+#     conn = get_db()
 
-    if conn:
+#     if conn:
 
-        cursor = conn.cursor()
+#         cursor = conn.cursor()
 
-        cursor.execute('''
+#         cursor.execute('''
 
-            INSERT INTO Rentals (CarId, CustomerId, StartTime, EndTime, GarageId, TotalCost, Miles, Purpose)
+#             INSERT INTO Rentals (CarId, CustomerId, StartTime, EndTime, GarageId, TotalCost, Miles, Purpose)
 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+#             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
 
-        ''', (new_rental['CarId'], new_rental['CustomerId'], new_rental['StartTime'],
+#         ''', (new_rental['CarId'], new_rental['CustomerId'], new_rental['StartTime'],
 
-              new_rental['EndTime'], new_rental['GarageId'], new_rental['TotalCost'],
+#               new_rental['EndTime'], new_rental['GarageId'], new_rental['TotalCost'],
 
-              new_rental['Miles'], new_rental['Purpose']))
+#               new_rental['Miles'], new_rental['Purpose']))
 
-        conn.commit()
+#         conn.commit()
 
-        conn.close()
+#         conn.close()
 
-        return jsonify({'message': 'Rental added successfully'}), 201
+#         return jsonify({'message': 'Rental added successfully'}), 201
 
-    else:
+#     else:
 
-        return jsonify({'error': 'Unable to connect to database'}), 500
+#         return jsonify({'error': 'Unable to connect to database'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
